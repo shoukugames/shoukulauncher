@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self' file:; style-src 'self' file: 'unsafe-inline'; font-src 'self' file:; img-src 'self' file: data: https://shoukugames.org; media-src 'self' file:; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Shouku Launcher</title>
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="titlebar">
+  <div class="titlebar__left">
+    <button class="nav-arrow" id="nav-back" title="Back" aria-label="Back"><svg viewBox="0 0 24 24"><path d="M15.4 5.4 14 4l-8 8 8 8 1.4-1.4L8.8 12z"/></svg></button>
+    <button class="nav-arrow" id="nav-fwd" title="Forward" aria-label="Forward"><svg viewBox="0 0 24 24"><path d="M8.6 18.6 10 20l8-8-8-8-1.4 1.4 6.6 6.6z"/></svg></button>
+    <a class="brand" href="#" data-go="store" aria-label="Shouku Games store">
+      <img src="img/icon-128.png" alt="" class="brand__logo">
+    </a>
+    <nav class="mainnav" aria-label="Main">
+      <a href="#" data-go="store" data-nav="store">Store</a>
+      <a href="#" data-go="library" data-nav="library">Library</a>
+      <a href="#" data-go="downloads" data-nav="downloads">Downloads</a>
+      <a href="#" data-go="bug" data-nav="bug">Bug report</a>
+      <a href="#" data-go="about" data-nav="about">About</a>
+    </nav>
+  </div>
+  <div class="titlebar__right">
+    <span class="platform-pill" id="platform-pill"></span>
+    <button class="tb-btn" id="btn-refresh" title="Check shoukugames.org for new games"><svg viewBox="0 0 24 24"><path d="M17.6 6.4A8 8 0 1 0 19.7 14h-2.1a6 6 0 1 1-1.4-6.2L13 11h7V4z"/></svg></button>
+    <div class="win-controls">
+      <button id="win-min" title="Minimise" aria-label="Minimise"><svg viewBox="0 0 12 12"><rect x="2" y="5.5" width="8" height="1"/></svg></button>
+      <button id="win-max" title="Maximise" aria-label="Maximise"><svg viewBox="0 0 12 12"><rect x="2.5" y="2.5" width="7" height="7" fill="none" stroke="currentColor"/></svg></button>
+      <button id="win-close" class="close" title="Close" aria-label="Close"><svg viewBox="0 0 12 12"><path d="M3 3l6 6M9 3l-6 6" stroke="currentColor" stroke-width="1.2"/></svg></button>
+    </div>
+  </div>
+</header>
+
+<main id="view" class="view" tabindex="-1"></main>
+
+<footer class="statusbar">
+  <a href="#" class="statusbar__left" data-go="library"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zm9 0h7v7h-7zM4 13h7v7H4zm9 0h7v7h-7z"/></svg> <span id="sb-count">Library</span></a>
+  <a href="#" class="statusbar__dl" id="sb-downloads" data-go="downloads">
+    <span class="sb-dl__label">Downloads</span>
+    <span class="sb-dl__text" id="sb-dl-text">No downloads</span>
+    <span class="sb-dl__bar"><span id="sb-dl-fill"></span></span>
+  </a>
+  <span class="statusbar__right" id="sb-sync"></span>
+</footer>
+
+<div class="lightbox" id="lightbox" hidden>
+  <button class="lightbox__close" data-lb="close" aria-label="Close">×</button>
+  <button class="lightbox__nav prev" data-lb="prev" aria-label="Previous">‹</button>
+  <img id="lightbox-img" alt="">
+  <button class="lightbox__nav next" data-lb="next" aria-label="Next">›</button>
+</div>
+<div class="toasts" id="toasts" aria-live="polite"></div>
+
+<script src="app.js"></script>
+</body>
+</html>

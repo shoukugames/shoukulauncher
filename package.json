@@ -1,0 +1,102 @@
+{
+  "name": "shouku-launcher",
+  "productName": "Shouku Launcher",
+  "version": "1.0.0",
+  "description": "Desktop launcher for the open-source, bilingual, educational games from Shouku Games.",
+  "homepage": "https://shoukugames.org/",
+  "author": {
+    "name": "Shouku Games",
+    "email": "info@shoukugames.org"
+  },
+  "license": "GPL-3.0-or-later",
+  "main": "src/main/main.js",
+  "scripts": {
+    "content": "node scripts/fetch-content.js",
+    "videos": "node scripts/make-videos.js",
+    "content:all": "npm run content && npm run videos",
+    "start": "node scripts/ensure-content.js && electron .",
+    "stage:win": "node scripts/ensure-content.js && node scripts/stage-platform.js win",
+    "stage:linux": "node scripts/ensure-content.js && node scripts/stage-platform.js linux",
+    "dist:win": "npm run stage:win && node scripts/build-win.js",
+    "dist:linux": "npm run stage:linux && electron-builder --linux deb --x64 --publish never",
+    "dist": "npm run dist:linux && npm run dist:win",
+    "check": "node scripts/check-dist.js"
+  },
+  "build": {
+    "appId": "org.shoukugames.launcher",
+    "productName": "Shouku Launcher",
+    "copyright": "Copyright © 2026 Shouku Games",
+    "directories": {
+      "output": "dist",
+      "buildResources": "resources"
+    },
+    "files": [
+      "src/**/*",
+      "package.json",
+      "!**/*.map"
+    ],
+    "extraResources": [
+      {
+        "from": "build/stage/content",
+        "to": "content"
+      }
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "resources/icon.ico",
+      "artifactName": "ShoukuLauncher-Setup-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Shouku Launcher",
+      "installerIcon": "resources/icon.ico",
+      "uninstallerIcon": "resources/icon.ico"
+    },
+    "linux": {
+      "target": [
+        "deb"
+      ],
+      "icon": "resources/icon.png",
+      "category": "Game",
+      "executableName": "shouku-launcher",
+      "synopsis": "Launcher for Shouku Games",
+      "maintainer": "Shouku Games <info@shoukugames.org>",
+      "artifactName": "shouku-launcher_${version}_${arch}.${ext}",
+      "desktop": {
+        "entry": {
+          "Name": "Shouku Launcher",
+          "Comment": "Open-source, bilingual, educational games from Tokyo",
+          "Categories": "Game;Education;",
+          "StartupWMClass": "Shouku Launcher"
+        }
+      }
+    },
+    "deb": {
+      "recommends": [
+        "pkexec | policykit-1",
+        "fonts-noto-cjk"
+      ],
+      "packageCategory": "games"
+    }
+  },
+  "devDependencies": {
+    "electron": "^38.4.0",
+    "electron-builder": "^26.0.12",
+    "ffmpeg-static": "^5.2.0"
+  },
+  "desktopName": "shouku-launcher.desktop",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/shoukugames/shoukulauncher.git"
+  },
+  "bugs": {
+    "url": "https://github.com/shoukugames/shoukulauncher/issues",
+    "email": "info@shoukugames.org"
+  }
+}
