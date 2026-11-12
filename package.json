@@ -25,7 +25,7 @@
   "build": {
     "appId": "org.shoukugames.launcher",
     "productName": "Shouku Launcher",
-    "copyright": "Copyright © 2026 Shouku Games",
+    "copyright": "Copyright (c) 2026 Shouku Games. Licensed under GPL-3.0-or-later.",
     "directories": {
       "output": "dist",
       "buildResources": "resources"
@@ -46,7 +46,10 @@
         "nsis"
       ],
       "icon": "resources/icon.ico",
-      "artifactName": "ShoukuLauncher-Setup-${version}.${ext}"
+      "artifactName": "ShoukuLauncher-Setup-${version}.${ext}",
+      "legalTrademarks": "Shouku Games",
+      "requestedExecutionLevel": "asInvoker",
+      "publish": null
     },
     "nsis": {
       "oneClick": false,
@@ -56,7 +59,9 @@
       "createStartMenuShortcut": true,
       "shortcutName": "Shouku Launcher",
       "installerIcon": "resources/icon.ico",
-      "uninstallerIcon": "resources/icon.ico"
+      "uninstallerIcon": "resources/icon.ico",
+      "packElevateHelper": false,
+      "allowElevation": false
     },
     "linux": {
       "target": [
@@ -83,7 +88,8 @@
         "fonts-noto-cjk"
       ],
       "packageCategory": "games"
-    }
+    },
+    "publish": null
   },
   "devDependencies": {
     "electron": "^38.4.0",
