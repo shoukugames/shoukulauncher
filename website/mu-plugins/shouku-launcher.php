@@ -2,7 +2,7 @@
 /**
  * Plugin Name: Shouku Launcher Page
  * Description: Adds the "Shouku Launcher" tab to the top right of the main menu and the download cards ([shouku_launcher_downloads]) used on the /shouku-launcher/ page. Delete this file to remove it.
- * Version: 1.1.0
+ * Version: 1.1.1
  *
  * The page text itself lives in WordPress (Pages → Shouku Launcher); the Japanese version is in
  * shouku-language-pack/ja-content.php under 'shouku-launcher'. The two packages live in
@@ -17,7 +17,7 @@
 
 defined( 'ABSPATH' ) || exit;
 
-define( 'SHOUKU_LAUNCHER_WINDOWS_VERSION', '1.1.0' );
+define( 'SHOUKU_LAUNCHER_WINDOWS_VERSION', '1.1.1' );
 define( 'SHOUKU_LAUNCHER_LINUX_VERSION', '1.0.0' );
 define( 'SHOUKU_LAUNCHER_SLUG', 'shouku-launcher' );
 define( 'SHOUKU_LAUNCHER_REPO', 'https://github.com/shoukugames/shoukulauncher' );
@@ -35,7 +35,7 @@ function shouku_launcher_files() {
 	$url  = trailingslashit( $up['baseurl'] ) . 'shouku-launcher/';
 	$list = array(
 		'windows'     => "ShoukuLauncher-Setup-$win.msi",
-		'windows_zip' => "ShoukuLauncher-$win-win-x64.zip",
+		'windows_zip' => "shoukugames-$win-win-x64.zip",
 		'linux'       => "shouku-launcher_{$lin}_amd64.deb",
 	);
 	$out  = array();

@@ -33,8 +33,8 @@
 
 | | Windows | Debian / Ubuntu |
 |---|---|---|
-| Version | 1.1.0 | 1.0.0 |
-| Package | `ShoukuLauncher-Setup-<version>.msi` (Windows Installer), or the portable `ShoukuLauncher-<version>-win-x64.zip` | `shouku-launcher_<version>_amd64.deb` |
+| Version | 1.1.1 | 1.0.0 |
+| Package | `ShoukuLauncher-Setup-<version>.msi` (Windows Installer), or the portable `shoukugames-<version>-win-x64.zip` | `shouku-launcher_<version>_amd64.deb` |
 | Games it offers | **only the Windows `.exe` builds** | **only the `.deb` packages** |
 | How games install | Portable games are saved to `%LOCALAPPDATA%\ShoukuGames\Library\<game>`; installer-type games run silently into that folder | `apt-get install` through `pkexec` (you're asked for your password), so dependencies are handled |
 | How games uninstall | Runs the game's uninstaller, then removes its folder | `apt-get remove` |
@@ -53,10 +53,10 @@ Download it from **<https://shoukugames.org/shouku-launcher/>** (the *Shouku Lau
 right of the website). How the page is set up and how to publish a new version is in
 [`website/README.md`](website/README.md).
 
-**Windows**: double-click `ShoukuLauncher-Setup-1.1.0.msi`. It installs for the current user into
+**Windows**: double-click `ShoukuLauncher-Setup-1.1.1.msi`. It installs for the current user into
 `%LOCALAPPDATA%\Programs\Shouku Launcher` without asking for an administrator password, and adds
 Start-menu and desktop shortcuts. Remove it from *Settings → Apps*. Or extract the portable
-`ShoukuLauncher-1.1.0-win-x64.zip` anywhere and run `Shouku Launcher.exe`.
+`shoukugames-1.1.1-win-x64.zip` anywhere and run `shoukugames.exe`.
 The packages aren't code-signed yet, so SmartScreen may say "Windows protected your PC". Click
 *More info*, then *Run anyway*.
 
@@ -82,14 +82,16 @@ Building the Windows MSI needs `wixl` from msitools (`sudo apt install wixl`), o
 npm install
 
 npm run dist:linux     # -> dist/shouku-launcher_1.0.0_amd64.deb
-npm run dist:win       # -> dist/ShoukuLauncher-Setup-1.1.0.msi + dist/ShoukuLauncher-1.1.0-win-x64.zip
+npm run dist:win       # -> dist/ShoukuLauncher-Setup-1.1.1.msi + dist/shoukugames-1.1.1-win-x64.zip
 npm run dist           # both
 npm run check          # verify both packages (platform split, videos, screenshots)
 ```
 
 Both editions are built on Linux and **no Wine is needed**. `scripts/build-win.js` has electron-builder
-lay the app out as a normal folder (`dist/win-unpacked`) and zip it, then turns the same folder into an
-MSI with `wixl`. The Windows edition's version is `windowsVersion` in `package.json`; the Linux edition
+lay the app out as a normal folder (`dist/win-unpacked`, program file `shoukugames.exe`), writes the
+complete version information into `shoukugames.exe` (product, company, description, version, copyright,
+original file name, licence and source-code link), zips the folder, and turns the same folder into an
+MSI with `wixl`. `npm run check` reads that version information back and fails if any of it is missing. The Windows edition's version is `windowsVersion` in `package.json`; the Linux edition
 uses `version`.
 
 The first build downloads the content automatically. You can also run the steps yourself:

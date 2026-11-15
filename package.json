@@ -2,7 +2,7 @@
   "name": "shouku-launcher",
   "productName": "Shouku Launcher",
   "version": "1.0.0",
-  "windowsVersion": "1.1.0",
+  "windowsVersion": "1.1.1",
   "description": "Desktop launcher for the open-source, bilingual, educational games from Shouku Games.",
   "homepage": "https://shoukugames.org/",
   "author": {
@@ -44,13 +44,20 @@
     ],
     "win": {
       "target": [
-        "zip"
+        "dir"
       ],
       "icon": "resources/icon.ico",
-      "artifactName": "ShoukuLauncher-${version}-win-${arch}.${ext}",
+      "executableName": "shoukugames",
+      "artifactName": "shoukugames-${version}-win-${arch}.${ext}",
       "legalTrademarks": "Shouku Games",
       "requestedExecutionLevel": "asInvoker",
-      "publish": null
+      "publish": null,
+      "extraFiles": [
+        {
+          "from": "LICENSE",
+          "to": "LICENSE.txt"
+        }
+      ]
     },
     "linux": {
       "target": [
@@ -83,7 +90,8 @@
   "devDependencies": {
     "electron": "^38.4.0",
     "electron-builder": "^26.0.12",
-    "ffmpeg-static": "^5.2.0"
+    "ffmpeg-static": "^5.2.0",
+    "resedit": "^1.7.2"
   },
   "desktopName": "shouku-launcher.desktop",
   "repository": {

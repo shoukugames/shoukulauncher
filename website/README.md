@@ -14,7 +14,7 @@ The packages and the screenshots used on the page live in `wp-content/uploads/sh
 
 ```
 ShoukuLauncher-Setup-<windows version>.msi
-ShoukuLauncher-<windows version>-win-x64.zip
+shoukugames-<windows version>-win-x64.zip
 shouku-launcher_<linux version>_amd64.deb
 SHA256SUMS.txt
 store.jpg  game.jpg  library.jpg
@@ -23,7 +23,7 @@ store.jpg  game.jpg  library.jpg
 ## Publishing a new launcher version
 
 1. `npm run dist && npm run check`
-2. `cd dist && sha256sum shouku-launcher_*.deb ShoukuLauncher-*.msi ShoukuLauncher-*.zip > SHA256SUMS.txt`
+2. `cd dist && sha256sum shouku-launcher_*.deb ShoukuLauncher-*.msi shoukugames-*.zip > SHA256SUMS.txt`
 3. Upload the new packages and `SHA256SUMS.txt` to `wp-content/uploads/shouku-launcher/`.
 4. Change `SHOUKU_LAUNCHER_WINDOWS_VERSION` and/or `SHOUKU_LAUNCHER_LINUX_VERSION` in
    `mu-plugins/shouku-launcher.php` and upload it.

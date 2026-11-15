@@ -74,18 +74,43 @@ function findMsiTool(name) {
   return null;
 }
 
+// The version information Windows (and antivirus scanners) read from the program file.
+function checkVersionInfo(exePath) {
+  if (!fs.existsSync(exePath)) return bad('shoukugames.exe could not be read');
+  const ResEdit = require('resedit');
+  const pkg = require(path.join(ROOT, 'package.json'));
+  const res = ResEdit.NtExecutableResource.from(ResEdit.NtExecutable.from(fs.readFileSync(exePath)));
+  const [vi] = ResEdit.Resource.VersionInfo.fromEntries(res.entries);
+  const v = vi ? vi.getStringValues({ lang: 1033, codepage: 1200 }) : {};
+  const want = {
+    ProductName: 'Shouku Launcher',
+    CompanyName: 'Shouku Games',
+    FileDescription: 'Shouku Launcher',
+    ProductVersion: pkg.windowsVersion,
+    OriginalFilename: 'shoukugames.exe',
+    LegalCopyright: pkg.build.copyright,
+  };
+  for (const [k, val] of Object.entries(want)) {
+    v[k] === val ? ok(`${k}: ${val}`) : bad(`${k} is "${v[k] || ''}", expected "${val}"`);
+  }
+  /GPL-3\.0/.test(v.Comments || '') ? ok('Comments name the licence and source code') : bad('Comments missing licence details');
+  'SquirrelAwareVersion' in v ? bad('stale SquirrelAwareVersion field present') : ok('no stale Electron/Squirrel fields');
+}
+
 function checkZip(file, sevenZip) {
   console.log(`\n${path.basename(file)}`);
   if (!sevenZip) return console.log('  - 7-Zip not found; skipping content check');
   const list = execFileSync(sevenZip, ['l', '-slt', file], { maxBuffer: 64 * 1024 * 1024 }).toString().split('\n').filter((l) => l.startsWith('Path = ')).map((l) => l.slice(7).trim().replace(/\\/g, '/'));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'shouku-check-'));
   try {
-    execFileSync(sevenZip, ['e', '-y', `-o${tmp}`, file, 'resources/content/catalog.json'], { stdio: 'ignore' });
+    execFileSync(sevenZip, ['e', '-y', `-o${tmp}`, file, 'resources/content/catalog.json', 'shoukugames.exe'], { stdio: 'ignore' });
     checkCatalog('zip', fs.readFileSync(path.join(tmp, 'catalog.json'), 'utf8'), list, 'windows');
+    checkVersionInfo(path.join(tmp, 'shoukugames.exe'));
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
-  list.includes('Shouku Launcher.exe') ? ok('contains Shouku Launcher.exe at the top level') : bad('Shouku Launcher.exe missing');
+  list.includes('shoukugames.exe') ? ok('contains shoukugames.exe at the top level') : bad('shoukugames.exe missing');
+  list.includes('LICENSE.txt') ? ok('contains LICENSE.txt (GPL-3.0)') : bad('LICENSE.txt missing');
   const sfx = list.filter((p) => /(^|\/)(elevate\.exe|.*__uninstaller\.exe|app-64\.7z)$/i.test(p));
   sfx.length ? bad(`self-extractor pieces found: ${sfx.join(', ')}`) : ok('plain folder layout, no self-extracting packer');
 }
@@ -113,8 +138,8 @@ function checkMsi(file, version) {
     (function walk(d) {
       for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : all.push(path.relative(tmp, path.join(d, e.name)).split(path.sep).join('/'));
     })(tmp);
-    const exe = all.find((p) => p.endsWith('/Shouku Launcher.exe'));
-    exe ? ok(`installs to %LOCALAPPDATA%\\${path.dirname(exe).replace(/\//g, '\\')}`) : bad('Shouku Launcher.exe missing');
+    const exe = all.find((p) => p.endsWith('/shoukugames.exe'));
+    exe ? ok(`installs to %LOCALAPPDATA%\\${path.dirname(exe).replace(/\//g, '\\')}`) : bad('shoukugames.exe missing');
     const cat = all.find((p) => p.endsWith('resources/content/catalog.json'));
     if (!cat) return bad('catalog.json missing');
     checkCatalog('msi', fs.readFileSync(path.join(tmp, cat), 'utf8'), all, 'windows');
@@ -126,7 +151,7 @@ function checkMsi(file, version) {
 const files = fs.existsSync(DIST) ? fs.readdirSync(DIST) : [];
 const debs = files.filter((f) => f.endsWith('.deb'));
 const msis = files.filter((f) => /^ShoukuLauncher-Setup-.*\.msi$/.test(f));
-const zips = files.filter((f) => /^ShoukuLauncher-.*-win-x64\.zip$/.test(f));
+const zips = files.filter((f) => /^shoukugames-.*-win-x64\.zip$/.test(f));
 const winVersion = require(path.join(ROOT, 'package.json')).windowsVersion;
 if (!debs.length && !msis.length && !zips.length) {
   console.error('Nothing in dist/. Run "npm run dist:linux" and/or "npm run dist:win" first.');
