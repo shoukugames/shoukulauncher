@@ -13,8 +13,9 @@ The **Shouku Launcher** tab (top right of the site menu) and the page at
 The packages and the screenshots used on the page live in `wp-content/uploads/shouku-launcher/`:
 
 ```
-ShoukuLauncher-Setup-<version>.exe
-shouku-launcher_<version>_amd64.deb
+ShoukuLauncher-Setup-<windows version>.msi
+ShoukuLauncher-<windows version>-win-x64.zip
+shouku-launcher_<linux version>_amd64.deb
 SHA256SUMS.txt
 store.jpg  game.jpg  library.jpg
 ```
@@ -22,8 +23,9 @@ store.jpg  game.jpg  library.jpg
 ## Publishing a new launcher version
 
 1. `npm run dist && npm run check`
-2. `cd dist && sha256sum shouku-launcher_*.deb ShoukuLauncher-Setup-*.exe > SHA256SUMS.txt`
-3. Upload the two packages and `SHA256SUMS.txt` to `wp-content/uploads/shouku-launcher/`.
-4. Change `SHOUKU_LAUNCHER_VERSION` in `mu-plugins/shouku-launcher.php` and upload it.
-5. Update the version in the `apt install` command in the page text (English in WordPress,
-   Japanese in `ja-content.php`).
+2. `cd dist && sha256sum shouku-launcher_*.deb ShoukuLauncher-*.msi ShoukuLauncher-*.zip > SHA256SUMS.txt`
+3. Upload the new packages and `SHA256SUMS.txt` to `wp-content/uploads/shouku-launcher/`.
+4. Change `SHOUKU_LAUNCHER_WINDOWS_VERSION` and/or `SHOUKU_LAUNCHER_LINUX_VERSION` in
+   `mu-plugins/shouku-launcher.php` and upload it.
+5. Update the file names in the page text (English in WordPress, Japanese in `ja-content.php`):
+   the `.msi` name in the Windows steps and the `apt install` command.

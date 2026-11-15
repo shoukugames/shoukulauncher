@@ -23,7 +23,7 @@
 <thead><tr><th></th><th>Windows</th><th>Linux</th></tr></thead>
 <tbody>
 <tr><td><strong>Works on</strong></td><td>Windows 10 and 11 (64-bit)</td><td>Debian, Ubuntu and distributions based on them, such as Linux Mint and Pop!_OS (64-bit)</td></tr>
-<tr><td><strong>Launcher file</strong></td><td>A typical <code>.exe</code> installer</td><td>A <code>.deb</code> package (dpkg / apt)</td></tr>
+<tr><td><strong>Launcher file</strong></td><td>An <code>.msi</code> installer (Windows Installer), or a portable <code>.zip</code></td><td>A <code>.deb</code> package (dpkg / apt)</td></tr>
 <tr><td><strong>Games it offers</strong></td><td>Only Windows games (<code>.exe</code>)</td><td>Only Linux games (<code>.deb</code>)</td></tr>
 <tr><td><strong>How games install</strong></td><td>Into your user folder, no admin rights needed</td><td>Through apt, after asking for your password, so anything a game needs is installed too</td></tr>
 </tbody>
@@ -32,10 +32,11 @@
 
 <h2 class="wp-block-heading">Installing on Windows</h2>
 <ol>
-<li>Download <strong>ShoukuLauncher-Setup.exe</strong> above and open it.</li>
-<li>If Windows says "Windows protected your PC", click <strong>More info</strong> and then <strong>Run anyway</strong>. This appears because the installer isn't code-signed yet.</li>
-<li>Follow the installer. Shouku Launcher is then in your Start menu and on your desktop.</li>
+<li>Download <strong>ShoukuLauncher-Setup-1.1.0.msi</strong> above and double-click it. It uses Windows' own installer, installs just for you, and doesn't need an administrator password.</li>
+<li>If Windows says "Windows protected your PC", click <strong>More info</strong> and then <strong>Run anyway</strong>. This can appear because the installer isn't code-signed yet.</li>
+<li>Shouku Launcher is then in your Start menu and on your desktop. To remove it, use <strong>Settings → Apps</strong>.</li>
 </ol>
+<p><strong>Prefer not to install anything?</strong> Download the <strong>portable ZIP</strong> instead, right-click it and choose <strong>Extract All</strong>, then open <strong>Shouku Launcher.exe</strong> in the extracted folder.</p>
 
 <h2 class="wp-block-heading">Installing on Debian or Ubuntu</h2>
 <p>Download the <strong>.deb</strong> file above, then double-click it to open it in your software centre, or install it from a terminal in the folder where you saved it:</p>

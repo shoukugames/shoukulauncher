@@ -28,7 +28,7 @@
 <thead><tr><th></th><th>Windows</th><th>Linux</th></tr></thead>
 <tbody>
 <tr><td><strong>対応OS</strong></td><td>Windows 10 / 11（64ビット）</td><td>Debian、Ubuntu、およびLinux MintやPop!_OSなどの派生ディストリビューション（64ビット）</td></tr>
-<tr><td><strong>ランチャーのファイル</strong></td><td>ふつうの<code>.exe</code>インストーラー</td><td><code>.deb</code>パッケージ（dpkg / apt）</td></tr>
+<tr><td><strong>ランチャーのファイル</strong></td><td><code>.msi</code>インストーラー（Windows インストーラー）、またはポータブル版<code>.zip</code></td><td><code>.deb</code>パッケージ（dpkg / apt）</td></tr>
 <tr><td><strong>表示されるゲーム</strong></td><td>Windows用ゲーム（<code>.exe</code>）だけ</td><td>Linux用ゲーム（<code>.deb</code>）だけ</td></tr>
 <tr><td><strong>ゲームのインストール方法</strong></td><td>ユーザーフォルダーにインストール（管理者権限は不要）</td><td>パスワードを確認したあと、aptでインストール（必要なものも一緒に入ります）</td></tr>
 </tbody>
@@ -37,10 +37,11 @@
 
 <h2 class="wp-block-heading">Windowsへのインストール</h2>
 <ol>
-<li>上から<strong>ShoukuLauncher-Setup.exe</strong>をダウンロードして開きます。</li>
-<li>「WindowsによってPCが保護されました」と表示されたら、<strong>「詳細情報」</strong>を押してから<strong>「実行」</strong>を押してください。インストーラーにまだコード署名がないため、この表示が出ます。</li>
-<li>インストーラーの案内に従います。完了すると、スタートメニューとデスクトップにShoukuランチャーが追加されます。</li>
+<li>上から<strong>ShoukuLauncher-Setup-1.1.0.msi</strong>をダウンロードして、ダブルクリックします。Windows標準のインストーラーを使い、あなたのユーザーだけにインストールするので、管理者のパスワードは必要ありません。</li>
+<li>「WindowsによってPCが保護されました」と表示されたら、<strong>「詳細情報」</strong>を押してから<strong>「実行」</strong>を押してください。インストーラーにまだコード署名がないため、この表示が出ることがあります。</li>
+<li>完了すると、スタートメニューとデスクトップにShoukuランチャーが追加されます。削除するときは<strong>「設定」→「アプリ」</strong>から行います。</li>
 </ol>
+<p><strong>インストールしたくない場合は</strong>、<strong>ポータブル版ZIP</strong>をダウンロードし、右クリックして<strong>「すべて展開」</strong>を選び、展開したフォルダーの<strong>Shouku Launcher.exe</strong>を開いてください。</p>
 
 <h2 class="wp-block-heading">Debian・Ubuntuへのインストール</h2>
 <p>上から<strong>.deb</strong>ファイルをダウンロードし、ダブルクリックしてソフトウェアセンターで開くか、保存したフォルダーでターミナルからインストールします。</p>

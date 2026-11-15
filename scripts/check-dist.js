@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 'use strict';
 // Checks the finished packages in dist/:
-//   - the Windows installer's catalogue lists only .exe downloads
+//   - the Windows MSI and zip list only .exe game downloads, with no self-extracting packer
 //   - the Debian package's catalogue lists only .deb downloads
 //   - every game has screenshots and a 20-second gameplay video bundled
 const fs = require('fs');
@@ -66,26 +66,58 @@ function checkDeb(file) {
   ok(info.trim());
 }
 
-function checkExe(file, sevenZip) {
+function findMsiTool(name) {
+  for (const dir of [process.env.WIXL ? path.dirname(process.env.WIXL) : '', ...(process.env.PATH || '').split(path.delimiter)]) {
+    const p = dir && path.join(dir, name);
+    if (p && fs.existsSync(p)) return p;
+  }
+  return null;
+}
+
+function checkZip(file, sevenZip) {
   console.log(`\n${path.basename(file)}`);
-  const head = Buffer.alloc(2);
-  const fd = fs.openSync(file, 'r');
-  fs.readSync(fd, head, 0, 2, 0);
-  fs.closeSync(fd);
-  head.toString() === 'MZ' ? ok('valid Windows executable (MZ header)') : bad('not a Windows executable');
   if (!sevenZip) return console.log('  - 7-Zip not found; skipping content check');
+  const list = execFileSync(sevenZip, ['l', '-slt', file], { maxBuffer: 64 * 1024 * 1024 }).toString().split('\n').filter((l) => l.startsWith('Path = ')).map((l) => l.slice(7).trim().replace(/\\/g, '/'));
   const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'shouku-check-'));
   try {
-    execFileSync(sevenZip, ['x', '-y', `-o${tmp}`, file, '$PLUGINSDIR/app-64.7z'], { stdio: 'ignore' });
-    const app7z = path.join(tmp, '$PLUGINSDIR', 'app-64.7z');
-    if (!fs.existsSync(app7z)) return bad('app-64.7z not found inside the installer');
-    const paths = (archive) =>
-      execFileSync(sevenZip, ['l', '-slt', archive], { maxBuffer: 64 * 1024 * 1024 }).toString().split('\n').filter((l) => l.startsWith('Path = ')).map((l) => l.slice(7).trim().replace(/\\/g, '/'));
-    // electron-builder stores already-compressed files (.mp4 …) directly in the installer, outside app-64.7z.
-    const list = [...paths(app7z), ...paths(file)];
-    execFileSync(sevenZip, ['e', '-y', `-o${tmp}`, app7z, 'resources/content/catalog.json'], { stdio: 'ignore' });
-    checkCatalog('exe', fs.readFileSync(path.join(tmp, 'catalog.json'), 'utf8'), list, 'windows');
-    list.some((p) => /Shouku Launcher\.exe$/.test(p)) ? ok('contains Shouku Launcher.exe') : bad('Shouku Launcher.exe missing');
+    execFileSync(sevenZip, ['e', '-y', `-o${tmp}`, file, 'resources/content/catalog.json'], { stdio: 'ignore' });
+    checkCatalog('zip', fs.readFileSync(path.join(tmp, 'catalog.json'), 'utf8'), list, 'windows');
+  } finally {
+    fs.rmSync(tmp, { recursive: true, force: true });
+  }
+  list.includes('Shouku Launcher.exe') ? ok('contains Shouku Launcher.exe at the top level') : bad('Shouku Launcher.exe missing');
+  const sfx = list.filter((p) => /(^|\/)(elevate\.exe|.*__uninstaller\.exe|app-64\.7z)$/i.test(p));
+  sfx.length ? bad(`self-extractor pieces found: ${sfx.join(', ')}`) : ok('plain folder layout, no self-extracting packer');
+}
+
+function checkMsi(file, version) {
+  console.log(`\n${path.basename(file)}`);
+  const head = Buffer.alloc(8);
+  const fd = fs.openSync(file, 'r');
+  fs.readSync(fd, head, 0, 8, 0);
+  fs.closeSync(fd);
+  head.equals(Buffer.from('d0cf11e0a1b11ae1', 'hex')) ? ok('valid Windows Installer database') : bad('not an MSI file');
+  const msiinfo = findMsiTool('msiinfo');
+  const msiextract = findMsiTool('msiextract');
+  if (!msiinfo || !msiextract) return console.log('  - msitools not found; skipping content check');
+  const info = (args) => execFileSync(msiinfo, args, { maxBuffer: 64 * 1024 * 1024 }).toString();
+  const props = Object.fromEntries(info(['export', file, 'Property']).split(/\r?\n/).slice(3).filter(Boolean).map((l) => l.split('\t').map((x) => x.trim())));
+  props.ProductVersion === version ? ok(`ProductVersion ${version}`) : bad(`ProductVersion is ${props.ProductVersion}, expected ${version}`);
+  props.Manufacturer === 'Shouku Games' ? ok('Manufacturer: Shouku Games') : bad(`Manufacturer is ${props.Manufacturer}`);
+  const source = Number((info(['suminfo', file]).match(/^Source: (\d+)/m) || [])[1]);
+  source & 8 ? ok('per-user install, no administrator rights needed') : bad('installer asks for administrator rights');
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'shouku-check-'));
+  try {
+    execFileSync(msiextract, ['-C', tmp, file], { stdio: 'ignore', maxBuffer: 64 * 1024 * 1024 });
+    const all = [];
+    (function walk(d) {
+      for (const e of fs.readdirSync(d, { withFileTypes: true })) e.isDirectory() ? walk(path.join(d, e.name)) : all.push(path.relative(tmp, path.join(d, e.name)).split(path.sep).join('/'));
+    })(tmp);
+    const exe = all.find((p) => p.endsWith('/Shouku Launcher.exe'));
+    exe ? ok(`installs to %LOCALAPPDATA%\\${path.dirname(exe).replace(/\//g, '\\')}`) : bad('Shouku Launcher.exe missing');
+    const cat = all.find((p) => p.endsWith('resources/content/catalog.json'));
+    if (!cat) return bad('catalog.json missing');
+    checkCatalog('msi', fs.readFileSync(path.join(tmp, cat), 'utf8'), all, 'windows');
   } finally {
     fs.rmSync(tmp, { recursive: true, force: true });
   }
@@ -93,13 +125,18 @@ function checkExe(file, sevenZip) {
 
 const files = fs.existsSync(DIST) ? fs.readdirSync(DIST) : [];
 const debs = files.filter((f) => f.endsWith('.deb'));
-const exes = files.filter((f) => /^ShoukuLauncher-Setup-.*\.exe$/.test(f));
-if (!debs.length && !exes.length) {
+const msis = files.filter((f) => /^ShoukuLauncher-Setup-.*\.msi$/.test(f));
+const zips = files.filter((f) => /^ShoukuLauncher-.*-win-x64\.zip$/.test(f));
+const winVersion = require(path.join(ROOT, 'package.json')).windowsVersion;
+if (!debs.length && !msis.length && !zips.length) {
   console.error('Nothing in dist/. Run "npm run dist:linux" and/or "npm run dist:win" first.');
   process.exit(1);
 }
 debs.forEach((f) => checkDeb(path.join(DIST, f)));
 const seven = find7z();
-exes.forEach((f) => checkExe(path.join(DIST, f), seven));
+msis.forEach((f) => checkMsi(path.join(DIST, f), winVersion));
+zips.forEach((f) => checkZip(path.join(DIST, f), seven));
+const oldSfx = files.filter((f) => /^ShoukuLauncher-Setup-.*\.exe$/.test(f));
+if (oldSfx.length) bad(`old self-extracting installer still in dist/: ${oldSfx.join(', ')}`);
 console.log(failed ? '\nSome checks FAILED.' : '\nAll checks passed.');
 process.exit(failed ? 1 : 0);
