@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SignPath artifact configuration "app-exe".
+  Copy this into SignPath: project "shoukulauncher" → Artifact configurations → New, slug "app-exe".
+  The GitHub artifact arrives as a ZIP containing shoukugames.exe.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <pe-file path="shoukugames.exe" product-name="Shouku Launcher">
+      <authenticode-sign />
+    </pe-file>
+  </zip-file>
+</artifact-configuration>

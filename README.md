@@ -122,6 +122,8 @@ scripts/                Content download, video maker, platform staging, Windows
 resources/              App icons (from the Shouku Games logo)
 videos/                 Optional real gameplay recordings
 website/                The "Shouku Launcher" tab and download page on shoukugames.org
+.github/workflows/      Windows build + SignPath signing (docs/SIGNING.md)
+.signpath/              SignPath artifact configurations
 build/, dist/           Generated (git-ignored)
 ```
 
@@ -138,6 +140,20 @@ Use the **Bug report** tab in the launcher. Reports about a game open an issue o
 repository; reports about the launcher go to
 [shoukugames/shoukulauncher](https://github.com/shoukugames/shoukulauncher/issues).
 You can also email info@shoukugames.org.
+
+## Code signing policy
+
+Windows builds are set up to be signed through [SignPath.io](https://about.signpath.io/), with a
+certificate from the [SignPath Foundation](https://signpath.org/) (pending approval; until then the
+Windows packages are unsigned). Only files built from this repository's source by the
+[GitHub Actions workflow](.github/workflows/windows.yml) are submitted for signing. Setup: [docs/SIGNING.md](docs/SIGNING.md).
+
+- **Committers and reviewers:** members of the [Shouku Games GitHub organization](https://github.com/shoukugames)
+- **Approvers:** owners of the Shouku Games GitHub organization
+
+**Privacy:** Shouku Launcher connects only to shoukugames.org, to read the game catalogue and to
+download the games you choose to install. It sends no analytics or personal data. A bug report is
+sent only when you choose to open it on GitHub or by email; you see the full text first.
 
 ## Licence
 

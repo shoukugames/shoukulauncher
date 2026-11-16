@@ -11,6 +11,11 @@
 //    MSI is the operating system's own installer format: Windows Installer copies the files
 //    straight into place, nothing is unpacked to %TEMP% and run from there.
 //
+// Stages (used by the GitHub Actions workflow so SignPath can sign in between):
+//   node scripts/build-win.js --app-only      step 1 + 2: dist/win-unpacked with shoukugames.exe
+//   node scripts/build-win.js --package-only  step 3 + 4: zip + MSI from the existing dist/win-unpacked
+//   node scripts/build-win.js                 everything
+//
 // The Windows edition has its own version ("windowsVersion" in package.json).
 // wixl must be on PATH (Debian/Ubuntu: sudo apt install wixl), or set WIXL=/path/to/wixl.
 const fs = require('fs');
@@ -47,9 +52,17 @@ function findTool(name) {
   throw new Error(`"${name}" not found. Install msitools/wixl (Debian/Ubuntu: sudo apt install wixl) or set WIXL=/path/to/wixl.`);
 }
 
+const APP_ONLY = process.argv.includes('--app-only');
+const PACKAGE_ONLY = process.argv.includes('--package-only');
+const builderArgs = process.argv.slice(2).filter((a) => a !== '--app-only' && a !== '--package-only');
+const EXE_NAME = `${pkg.build.win.executableName}.exe`; // shoukugames.exe
+const EXE = path.join(APP_DIR, EXE_NAME);
+const ZIP = path.join(DIST, `${pkg.build.win.executableName}-${VERSION}-win-x64.zip`); // shoukugames-<v>-win-x64.zip
+
 const xml = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 
 // ---- 1. App folder ---------------------------------------------------------------------------
+if (!PACKAGE_ONLY) {
 for (const f of fs.readdirSync(DIST).filter((f) => /^(ShoukuLauncher|shoukugames)-(Setup-)?[\d.]+.*\.(exe|msi|zip|blockmap)$/.test(f) || f.endsWith('__uninstaller.exe'))) {
   fs.rmSync(path.join(DIST, f));
 }
@@ -58,10 +71,8 @@ run(process.execPath, [
   '--win', 'dir', '--x64', '--publish', 'never',
   `-c.extraMetadata.version=${VERSION}`,
   `-c.buildVersion=${VERSION}`,
-  ...process.argv.slice(2),
+  ...builderArgs,
 ]);
-const EXE_NAME = `${pkg.build.win.executableName}.exe`; // shoukugames.exe
-const EXE = path.join(APP_DIR, EXE_NAME);
 if (!fs.existsSync(EXE)) throw new Error(`dist/win-unpacked/${EXE_NAME} is missing`);
 
 // ---- 2. Complete version info on shoukugames.exe ------------------------------------------------
@@ -97,6 +108,13 @@ if (!fs.existsSync(EXE)) throw new Error(`dist/win-unpacked/${EXE_NAME} is missi
   res.outputResource(exe);
   fs.writeFileSync(EXE, Buffer.from(exe.generate()));
 }
+} // end of app stage
+
+if (APP_ONLY) {
+  console.log(`\nWindows ${VERSION} app folder ready: ${path.relative(ROOT, EXE)}`);
+  process.exit(0);
+}
+if (!fs.existsSync(EXE)) throw new Error(`${path.relative(ROOT, EXE)} is missing; run "node scripts/build-win.js --app-only" first`);
 
 // ---- 3. Portable zip ------------------------------------------------------------------------
 function find7z() {
@@ -112,7 +130,8 @@ function find7z() {
   }
   throw new Error('7-Zip (7za) not found; it is downloaded by the first electron-builder run, or install p7zip-full.');
 }
-const ZIP = path.join(DIST, `${pkg.build.win.executableName}-${VERSION}-win-x64.zip`); // shoukugames-<v>-win-x64.zip
+fs.rmSync(ZIP, { force: true });
+fs.rmSync(MSI, { force: true });
 run(find7z(), ['a', '-tzip', '-mx=9', '-bd', '-bso0', ZIP, '.'], { cwd: APP_DIR });
 
 // ---- 4. MSI ----------------------------------------------------------------------------------

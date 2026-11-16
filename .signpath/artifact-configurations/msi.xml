@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  SignPath artifact configuration "msi".
+  Copy this into SignPath: project "shoukulauncher" → Artifact configurations → New, slug "msi".
+  The GitHub artifact arrives as a ZIP containing ShoukuLauncher-Setup-<version>.msi.
+  shoukugames.exe inside the MSI is already signed by the "app-exe" step.
+-->
+<artifact-configuration xmlns="http://signpath.io/artifact-configuration/v1">
+  <zip-file>
+    <msi-file path="ShoukuLauncher-Setup-*.msi">
+      <authenticode-sign />
+    </msi-file>
+  </zip-file>
+</artifact-configuration>

@@ -1,0 +1,155 @@
+# Builds the Windows edition (shoukugames.exe in a ZIP, plus an MSI) and signs it with SignPath.
+#
+# Signing switches on by itself once these are set in the repository settings
+# (Settings → Secrets and variables → Actions):
+#   secret    SIGNPATH_API_TOKEN          API token of the SignPath CI user
+#   variable  SIGNPATH_ORGANIZATION_ID    your SignPath organization ID
+# Optional variables (defaults in brackets):
+#   SIGNPATH_PROJECT_SLUG [shoukulauncher]   SIGNPATH_SIGNING_POLICY_SLUG [release-signing]
+# Without them the workflow still builds, just unsigned. Setup guide: docs/SIGNING.md
+#
+# Run it from the Actions tab ("Run workflow"), or push a tag like win-v1.1.1 to also
+# publish a GitHub release with the files.
+name: Windows build
+
+on:
+  workflow_dispatch:
+  push:
+    tags: ['win-v*']
+
+permissions:
+  contents: write # create the GitHub release on tags
+  actions: read # SignPath downloads the build artifacts
+
+concurrency:
+  group: windows-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  windows:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    env:
+      SIGN: ${{ secrets.SIGNPATH_API_TOKEN != '' && vars.SIGNPATH_ORGANIZATION_ID != '' }}
+      SIGNPATH_PROJECT: ${{ vars.SIGNPATH_PROJECT_SLUG || 'shoukulauncher' }}
+      SIGNPATH_POLICY: ${{ vars.SIGNPATH_SIGNING_POLICY_SLUG || 'release-signing' }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install wixl (MSI builder) and 7-Zip
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y --no-install-recommends wixl msitools p7zip-full
+
+      - name: Check the tag matches windowsVersion
+        if: startsWith(github.ref, 'refs/tags/win-v')
+        run: |
+          want="win-v$(node -p 'require("./package.json").windowsVersion')"
+          if [ "$GITHUB_REF_NAME" != "$want" ]; then
+            echo "::error::Tag $GITHUB_REF_NAME does not match package.json windowsVersion (expected $want)"
+            exit 1
+          fi
+
+      - run: npm ci
+
+      - name: Read the game catalogue from shoukugames.org and make the videos
+        run: npm run stage:win
+
+      - name: Build the app folder (shoukugames.exe with version info)
+        run: node scripts/build-win.js --app-only
+
+      # ---- Sign shoukugames.exe -----------------------------------------------------------------
+      - name: Upload shoukugames.exe for signing
+        if: env.SIGN == 'true'
+        id: upload-exe
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-exe
+          path: dist/win-unpacked/shoukugames.exe
+          if-no-files-found: error
+
+      - name: Sign shoukugames.exe (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT }}
+          signing-policy-slug: ${{ env.SIGNPATH_POLICY }}
+          artifact-configuration-slug: app-exe
+          github-artifact-id: ${{ steps.upload-exe.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: build/signed-exe
+
+      - name: Put the signed shoukugames.exe into the app folder
+        if: env.SIGN == 'true'
+        run: cp build/signed-exe/shoukugames.exe dist/win-unpacked/shoukugames.exe
+
+      # ---- ZIP + MSI from the (signed) app folder ------------------------------------------------
+      - name: Build the ZIP and MSI
+        run: node scripts/build-win.js --package-only
+
+      - name: Upload the MSI for signing
+        if: env.SIGN == 'true'
+        id: upload-msi
+        uses: actions/upload-artifact@v4
+        with:
+          name: unsigned-msi
+          path: dist/ShoukuLauncher-Setup-*.msi
+          if-no-files-found: error
+
+      - name: Sign the MSI (SignPath)
+        if: env.SIGN == 'true'
+        uses: signpath/github-action-submit-signing-request@v1
+        with:
+          api-token: ${{ secrets.SIGNPATH_API_TOKEN }}
+          organization-id: ${{ vars.SIGNPATH_ORGANIZATION_ID }}
+          project-slug: ${{ env.SIGNPATH_PROJECT }}
+          signing-policy-slug: ${{ env.SIGNPATH_POLICY }}
+          artifact-configuration-slug: msi
+          github-artifact-id: ${{ steps.upload-msi.outputs.artifact-id }}
+          wait-for-completion: true
+          output-artifact-directory: build/signed-msi
+
+      - name: Use the signed MSI
+        if: env.SIGN == 'true'
+        run: cp build/signed-msi/ShoukuLauncher-Setup-*.msi dist/
+
+      # ---- Check and publish ---------------------------------------------------------------------
+      - name: Check the packages
+        run: npm run check
+
+      - name: Show signatures
+        run: |
+          sudo apt-get install -y --no-install-recommends osslsigncode >/dev/null
+          for f in dist/win-unpacked/shoukugames.exe dist/ShoukuLauncher-Setup-*.msi; do
+            echo "== $f"
+            osslsigncode verify -in "$f" 2>&1 | grep -E 'Subject:|Signature verification|No signature' | head -3 || true
+          done
+          (cd dist && sha256sum ShoukuLauncher-Setup-*.msi shoukugames-*-win-x64.zip | tee SHA256SUMS-windows.txt)
+
+      - name: Upload the finished files
+        uses: actions/upload-artifact@v4
+        with:
+          name: windows-${{ env.SIGN == 'true' && 'signed' || 'unsigned' }}
+          path: |
+            dist/ShoukuLauncher-Setup-*.msi
+            dist/shoukugames-*-win-x64.zip
+            dist/SHA256SUMS-windows.txt
+          if-no-files-found: error
+
+      - name: Publish the GitHub release
+        if: startsWith(github.ref, 'refs/tags/win-v')
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          signed=$([ "$SIGN" = true ] && echo "Signed with a SignPath Foundation certificate." || echo "Not code-signed.")
+          gh release create "$GITHUB_REF_NAME" \
+            dist/ShoukuLauncher-Setup-*.msi dist/shoukugames-*-win-x64.zip dist/SHA256SUMS-windows.txt \
+            --title "Shouku Launcher for Windows ${GITHUB_REF_NAME#win-v}" \
+            --notes "Windows edition of Shouku Launcher. Install with the MSI (per-user, no admin rights needed), or extract the ZIP and run shoukugames.exe. $signed"
