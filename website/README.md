@@ -6,6 +6,7 @@ The **Shouku Launcher** tab (top right of the site menu) and the page at
 | File | Goes to (on the server, under `public_html/`) | What it does |
 |---|---|---|
 | `mu-plugins/shouku-launcher.php` | `wp-content/mu-plugins/` | Adds the menu tab, the `[shouku_launcher_downloads]` cards and their styling |
+| `mu-plugins/shouku-play-online.php` | `wp-content/mu-plugins/` | Adds a **Play online** section and top button to every game page whose browser version exists at `public_html/play/<game slug>/index.html` (English and Japanese) |
 | `page-en.html` | WordPress page `shouku-launcher` (via `create-page.php`) | English page text. After the first run it can also be edited in WordPress |
 | `ja-content-entry.php` | Inserted into `wp-content/mu-plugins/shouku-language-pack/ja-content.php` | Japanese page text, used by the language pack |
 | `create-page.php` | Run once with `php create-page.php ~/public_html` | Creates or updates the page |
@@ -29,3 +30,11 @@ store.jpg  game.jpg  library.jpg
    `mu-plugins/shouku-launcher.php` and upload it.
 5. Update the file names in the page text (English in WordPress, Japanese in `ja-content.php`):
    the `.msi` name in the Windows steps and the `apt install` command.
+
+## Browser versions of the games
+
+Each game's browser build lives in `public_html/play/<game slug>/` (the slug is the end of the game
+page's address, e.g. `/games/chemtris/` → `/play/chemtris/`). As soon as a folder there has an
+`index.html`, `shouku-play-online.php` shows the *Play online* section on that game's page; there is
+nothing else to switch on. Notes for games that play differently in a browser (Beat Clap without a
+microphone, OpenNovella's demo story, the typing games) are in `shouku_play_notes()`.
