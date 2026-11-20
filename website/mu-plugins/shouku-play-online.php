@@ -47,7 +47,8 @@ function shouku_play_url( $post ) {
 	if ( '' === $slug || ! is_readable( ABSPATH . 'play/' . $slug . '/index.html' ) ) {
 		return '';
 	}
-	return '/play/' . $slug . '/'; // Relative, so the language pack leaves it alone (no /ja/ copy exists).
+	// Relative, so the language pack leaves it alone (no /ja/ copy exists); ?lang=ja makes the play page Japanese.
+	return '/play/' . $slug . '/' . ( shouku_play_is_ja() ? '?lang=ja' : '' );
 }
 
 /** A play triangle in the theme's icon style (the theme has no play icon). */

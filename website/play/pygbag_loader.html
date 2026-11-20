@@ -1,0 +1,109 @@
+<!-- shouku: themed loader -->
+<style>
+@font-face { font-family: "Fredoka"; src: url("/wp-content/themes/shouku/assets/fonts/fredoka-latin-wght-normal.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
+body { background: #0d2a44 !important; }
+#infobox { visibility: hidden !important; }
+#shouku-load {
+  --accent: {{ACCENT}};
+  position: fixed; inset: 0; z-index: 1000000; display: grid; place-items: center; overflow: hidden;
+  font-family: "Fredoka", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Noto Sans CJK JP", system-ui, sans-serif;
+  color: #17476f; background: #0d2a44; transition: opacity .4s; -webkit-tap-highlight-color: transparent;
+}
+#shouku-load::before { content: ""; position: absolute; inset: -20px; background: url("{{IMAGE}}") center / cover no-repeat; filter: blur(6px) brightness(.55); }
+#shouku-load.is-ready { cursor: pointer; }
+#shouku-load.is-gone { opacity: 0; pointer-events: none; }
+.sl-card {
+  position: relative; width: min(380px, 78vw); padding: clamp(14px, 4vmin, 26px) clamp(16px, 4.5vmin, 30px);
+  text-align: center; background: rgba(255, 255, 255, .92); border: 3px solid #fff; border-radius: clamp(18px, 4vmin, 28px);
+  box-shadow: 0 24px 50px -18px rgba(0, 0, 0, .55);
+}
+.sl-title { margin: 0; font-size: clamp(1.25rem, 5.5vmin, 2rem); font-weight: 700; line-height: 1.1; }
+.sl-msg { margin: clamp(4px, 1.5vmin, 10px) 0 clamp(8px, 2.5vmin, 16px); font-size: clamp(.85rem, 3.2vmin, 1.05rem); font-weight: 500; color: #456c8f; }
+.sl-track { height: clamp(10px, 2.6vmin, 14px); border-radius: 999px; background: #dcecf6; overflow: hidden; }
+.sl-fill {
+  height: 100%; width: 8%; border-radius: inherit; transition: width .4s;
+  background: repeating-linear-gradient(45deg, var(--accent) 0 12px, color-mix(in srgb, var(--accent) 75%, #fff) 12px 24px);
+  background-size: 34px 34px; animation: sl-stripes .8s linear infinite;
+}
+@keyframes sl-stripes { to { background-position: 34px 0; } }
+.sl-play {
+  display: none; align-items: center; justify-content: center; gap: 10px; width: 100%;
+  padding: clamp(9px, 2.6vmin, 14px) 26px; border: 0; border-radius: 999px; cursor: pointer;
+  font-family: inherit; font-weight: 600; font-size: clamp(1.1rem, 4.5vmin, 1.5rem); line-height: 1.2;
+  background: #ffc947; color: #5c3b00; box-shadow: 0 6px 0 #e49b12, 0 14px 22px -10px rgba(23, 71, 111, .5);
+  transition: transform .12s, box-shadow .12s; animation: sl-bob 1.6s ease-in-out infinite;
+}
+.sl-play:focus { outline: none; }
+.sl-play:focus-visible { outline: 3px solid #ff8a3d; outline-offset: 3px; }
+.sl-play svg { width: 1.1em; height: 1.1em; }
+.sl-play:hover { transform: translateY(-2px) rotate(-1deg); }
+.sl-play:active { transform: translateY(5px); box-shadow: 0 1px 0 #e49b12; }
+@keyframes sl-bob { 50% { transform: translateY(-3px); } }
+.is-ready .sl-track { display: none; }
+.is-ready .sl-play { display: flex; }
+.sl-sound { margin: clamp(6px, 2vmin, 12px) 0 0; font-size: clamp(.75rem, 2.8vmin, .9rem); color: #456c8f; }
+@media (prefers-reduced-motion: reduce) { .sl-fill, .sl-play { animation: none; } }
+</style>
+<div id="shouku-load" role="status">
+  <div class="sl-card">
+    <p class="sl-title" id="sl-title"></p>
+    <p class="sl-msg" id="sl-msg"></p>
+    <div class="sl-track"><div class="sl-fill" id="sl-fill"></div></div>
+    <button class="sl-play" id="sl-play" type="button"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M7 4.5v15a1 1 0 0 0 1.5.86l12.3-7.5a1 1 0 0 0 0-1.72L8.5 3.64A1 1 0 0 0 7 4.5Z"/></svg><span id="sl-play-t"></span></button>
+    <p class="sl-sound" id="sl-sound"></p>
+  </div>
+</div>
+<script>
+(function () {
+  var lang = 'en';
+  try { lang = parent.document.documentElement.lang || lang; } catch (e) {}
+  if (lang === 'en' && /^ja\b/i.test(navigator.language || '') && parent === window) lang = 'ja';
+  var ja = lang === 'ja';
+  var t = ja ? { title: {{TITLE_JA_JS}}, loading: 'ゲームを読み込んでいます…', slow: '少し時間がかかっています…', ready: '準備ができました！', play: 'あそぶ', starting: 'スタート中…', sound: '🔊 音が出ます' }
+             : { title: {{TITLE_EN_JS}}, loading: 'Loading the game…', slow: 'Almost there, this can take a moment…', ready: 'Ready!', play: 'Play', starting: 'Starting…', sound: '🔊 Sound on' };
+  var $ = function (id) { return document.getElementById(id); };
+  var load = $('shouku-load'), box = $('infobox'), fill = $('sl-fill'), msg = $('sl-msg');
+  $('sl-title').textContent = t.title; msg.textContent = t.loading; $('sl-play-t').textContent = t.play; $('sl-sound').textContent = t.sound;
+
+  // Progress: pygbag's own (hidden) progress bar, plus a slow creep so it never looks stuck.
+  var shown = 8, started = Date.now(), done = false;
+  var tick = setInterval(function () {
+    var p = document.getElementById('progress'), v = p && p.value ? Math.min(+p.value, 100) * .7 : 0;
+    var creep = 8 + 80 * (1 - Math.exp(-(Date.now() - started) / 12000));
+    shown = Math.max(shown, v, creep);
+    fill.style.width = Math.min(shown, 96) + '%';
+    if (!load.classList.contains('is-ready') && Date.now() - started > 25000) msg.textContent = t.slow;
+  }, 250);
+
+  function finish() {
+    if (done) return; done = true; clearInterval(tick);
+    fill.style.width = '100%';
+    load.classList.add('is-gone');
+    setTimeout(function () { load.remove(); }, 500);
+    var c = document.getElementById('canvas'); if (c) try { c.focus(); } catch (e) {}
+  }
+  function ready() {
+    if (load.classList.contains('is-ready')) return;
+    load.classList.add('is-ready'); msg.textContent = t.ready;
+    try { $('sl-play').focus(); } catch (e) {}
+  }
+  function start() {
+    if (!load.classList.contains('is-ready') || done) return;
+    load.classList.remove('is-ready'); msg.textContent = t.starting;
+    // Unlock audio right inside the click, instead of waiting for pygbag's 2-second retry.
+    try { if (window.MM && !MM.UME && window.config) MM_play({ auto: 1, test: 0, media: new Audio(config.cdn + 'empty.ogg') }, 1); } catch (e) {}
+    try { if (window.MM && MM.is_safari && typeof MM.is_safari === 'function') MM.is_safari(); } catch (e) {}
+  }
+  load.addEventListener('click', start);
+  load.addEventListener('keydown', function (e) { if (e.key === 'Enter' || e.key === ' ') start(); });
+
+  function sync() {
+    if (!box) return;
+    if (box.style.display === 'none') return finish();
+    var text = box.textContent || '';
+    if (/ready to start/i.test(text)) ready();
+  }
+  if (box) new MutationObserver(sync).observe(box, { attributes: true, childList: true, characterData: true, subtree: true });
+  setInterval(sync, 500);
+})();
+</script>

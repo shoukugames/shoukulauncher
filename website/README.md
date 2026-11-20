@@ -38,3 +38,19 @@ page's address, e.g. `/games/chemtris/` → `/play/chemtris/`). As soon as a fol
 `index.html`, `shouku-play-online.php` shows the *Play online* section on that game's page; there is
 nothing else to switch on. Notes for games that play differently in a browser (Beat Clap without a
 microphone, OpenNovella's demo story, the typing games) are in `shouku_play_notes()`.
+
+### The play page (`play/`)
+
+`/play/<game slug>/` is a page in the site's look: the header pill, the game's accent colour, a
+*Game page* back link and a *Full screen* button, with the game in a framed window loaded from
+`/play/<game slug>/game/`. Japanese game pages link to `?lang=ja`, which makes the page Japanese.
+
+- `play/shell.html` is that page; `play/games.json` holds each game's titles, accent colour,
+  screenshot, screen size, where its browser build is (in `web-ports/`) and how it fits the frame:
+  `native` games (pygame/pygbag) size themselves to the window, `scale` games (fixed 1280×720 web
+  pages) run at their own size and are scaled to fit.
+- `play/pygbag_loader.html` replaces pygbag's default loading screen in the pygame games with a
+  themed loading card and a **Play** button (the click browsers require before a game may play sound).
+- `python3 play/build_play.py --deploy [slug ...]` builds the pages into `play/stage/` and uploads
+  them; the previous version of each game goes to `~/backups/play-<slug>-<date>` on the server.
+  Run it again after rebuilding a game's browser version. Without `--deploy` it only builds.

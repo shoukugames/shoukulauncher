@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="{{ACCENT}}">
+<title>Play {{TITLE_EN}} online · Shouku Games</title>
+<link rel="icon" href="/wp-content/uploads/2026/11/shouku-logo-square-150x150.jpg">
+<link rel="preload" href="/wp-content/themes/shouku/assets/fonts/fredoka-latin-wght-normal.woff2" as="font" type="font/woff2" crossorigin>
+<script>
+  // Language: ?lang=ja (set by the Japanese game page), else a Japanese browser.
+  (function () {
+    var q = /[?&]lang=(en|ja)\b/.exec(location.search);
+    var ja = q ? q[1] === 'ja' : /^ja\b/i.test(navigator.language || '');
+    document.documentElement.lang = ja ? 'ja' : 'en';
+  })();
+</script>
+<style>
+@font-face { font-family: "Fredoka"; src: url("/wp-content/themes/shouku/assets/fonts/fredoka-latin-wght-normal.woff2") format("woff2"); font-weight: 300 700; font-display: swap; }
+@font-face { font-family: "Nunito"; src: url("/wp-content/themes/shouku/assets/fonts/nunito-latin-wght-normal.woff2") format("woff2"); font-weight: 200 1000; font-display: swap; }
+:root {
+  --accent: {{ACCENT}};
+  --ink: #17476f;
+  --blue: #1f86d8;
+  --blue-deep: #1565a8;
+  --sun: #ffc947;
+  --sun-deep: #e49b12;
+  --orange: #ff8a3d;
+  --night: #0d2a44;
+  --shadow: 0 18px 44px -18px rgba(23, 71, 111, .45);
+  --display: "Fredoka", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Noto Sans CJK JP", system-ui, sans-serif;
+  --body: "Nunito", "Hiragino Maru Gothic ProN", "Yu Gothic UI", "Noto Sans CJK JP", system-ui, sans-serif;
+  --gap: clamp(8px, 1.6vmin, 16px);
+}
+*, *::before, *::after { box-sizing: border-box; }
+[hidden] { display: none !important; }
+html, body { height: 100%; }
+body {
+  margin: 0; overflow: hidden; color: var(--ink); font: 500 1rem/1.4 var(--body);
+  background: linear-gradient(150deg, color-mix(in srgb, var(--accent) 88%, #fff), color-mix(in srgb, var(--accent) 28%, #dff3fd));
+  background-color: var(--accent);
+  display: flex; flex-direction: column; gap: var(--gap);
+  height: 100vh; height: 100dvh;
+  padding: var(--gap) max(var(--gap), env(safe-area-inset-right)) var(--gap) max(var(--gap), env(safe-area-inset-left));
+}
+:focus-visible { outline: 3px solid var(--orange); outline-offset: 3px; border-radius: 8px; }
+.ico { width: 1.25em; height: 1.25em; flex: none; }
+
+/* Drifting clouds, as on the game pages. */
+.sky { position: fixed; inset: 0; pointer-events: none; overflow: hidden; }
+.cloud { position: absolute; color: #fff; opacity: .28; animation: drift 44s linear infinite alternate; }
+.c1 { width: 260px; top: 8%; left: -40px; }
+.c2 { width: 180px; top: 62%; right: -30px; animation-duration: 52s; }
+.c3 { width: 140px; bottom: 4%; left: 30%; animation-duration: 60s; }
+@keyframes drift { to { transform: translateX(60px); } }
+@media (prefers-reduced-motion: reduce) { .cloud { animation: none; } }
+
+/* Header pill, like the site header. */
+.bar {
+  position: relative; z-index: 2; flex: none;
+  width: min(1180px, 100%); margin-inline: auto;
+  display: flex; align-items: center; gap: 12px;
+  padding: 6px 8px 6px 6px;
+  background: rgba(255, 255, 255, .86); backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border: 3px solid #fff; border-radius: 999px; box-shadow: var(--shadow);
+}
+.brand { display: flex; align-items: center; gap: 10px; text-decoration: none; flex: none; }
+.brand__logo { width: 44px; height: 44px; object-fit: cover; border-radius: 50%; border: 3px solid #fff; box-shadow: 0 4px 12px rgba(23, 71, 111, .25); transition: transform .4s cubic-bezier(.3, 1.8, .5, 1); }
+.brand:hover .brand__logo { transform: rotate(-10deg) scale(1.12); }
+.brand__name { font: 700 1.3rem/1 var(--display); background: linear-gradient(90deg, #2f9bea 0 55%, #ff8a3d 70%); -webkit-background-clip: text; background-clip: text; color: transparent; white-space: nowrap; }
+.bar__title { flex: 1; min-width: 0; margin: 0; text-align: center; font: 600 1.25rem/1.2 var(--display); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.bar__title small { display: block; font: 600 .78rem/1.2 var(--body); color: #456c8f; letter-spacing: .02em; }
+.bar__actions { display: flex; gap: 8px; flex: none; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center; gap: 7px;
+  padding: 8px 16px; border: 0; border-radius: 999px; cursor: pointer; text-decoration: none; white-space: nowrap;
+  font: 600 1rem/1.2 var(--display);
+  --lip: #0003; box-shadow: 0 4px 0 var(--lip), 0 10px 18px -10px rgba(23, 71, 111, .5);
+  transition: transform .12s, box-shadow .12s;
+}
+.btn:hover { transform: translateY(-2px) rotate(-1deg); box-shadow: 0 6px 0 var(--lip), 0 14px 20px -10px rgba(23, 71, 111, .5); }
+.btn:active { transform: translateY(4px); box-shadow: 0 0 0 var(--lip); }
+.btn--white { background: #fff; color: var(--blue-deep); --lip: #bcdcef; }
+.btn--blue { background: var(--blue); color: #fff; --lip: var(--blue-deep); }
+
+/* The game window. */
+.stage { position: relative; z-index: 1; flex: 1; min-height: 0; display: grid; place-items: center; container-type: size; }
+.frame {
+  position: relative; overflow: hidden;
+  width: min(100cqw, calc(100cqh * {{W}} / {{H}})); aspect-ratio: {{W}} / {{H}};
+  border: clamp(3px, .7vmin, 6px) solid #fff; border-radius: clamp(12px, 2.4vmin, 24px);
+  background: var(--night) url("{{IMAGE}}") center / cover no-repeat;
+  box-shadow: 0 24px 60px -20px rgba(13, 42, 68, .65);
+}
+.frame::before { content: ""; position: absolute; inset: 0; background: rgba(13, 42, 68, .55); backdrop-filter: blur(6px); -webkit-backdrop-filter: blur(6px); }
+.frame iframe { position: absolute; inset: 0; width: 100%; height: 100%; border: 0; display: block; background: transparent; opacity: 0; transition: opacity .35s; }
+.frame.is-loaded iframe { opacity: 1; }
+.frame.is-scaled iframe { inset: auto; left: 0; top: 0; width: {{W}}px; height: {{H}}px; transform-origin: 0 0; }
+.frame:fullscreen { width: 100%; height: 100%; border: 0; border-radius: 0; background: #000; aspect-ratio: auto; }
+.frame:-webkit-full-screen { width: 100%; height: 100%; border: 0; border-radius: 0; background: #000; }
+.wait { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 600 1.1rem var(--display); }
+.wait::after { content: ""; width: 44px; height: 44px; margin-top: 70px; border-radius: 50%; border: 5px solid rgba(255, 255, 255, .3); border-top-color: var(--sun); animation: spin .9s linear infinite; position: absolute; }
+.frame.is-loaded .wait { display: none; }
+@keyframes spin { to { transform: rotate(1turn); } }
+
+.tip { display: none; position: relative; z-index: 1; margin: 0; text-align: center; font: 600 .95rem/1.3 var(--display); color: #fff; text-shadow: 0 1px 3px rgba(13, 42, 68, .5); }
+
+/* Phones held upright: compact header, hint to turn the phone. */
+@media (max-width: 720px) {
+  .brand__name, .btn span, .bar__title small { display: none; }
+  .btn { padding: 9px 11px; }
+  .bar__title { font-size: 1.1rem; text-align: left; }
+}
+@media (orientation: portrait) and (max-width: 900px) { .tip { display: block; } }
+
+/* Short screens (phones sideways): the header becomes a slim rail at the side so the game gets the height. */
+@media (max-height: 520px) and (orientation: landscape) {
+  body { flex-direction: row; }
+  .bar { flex-direction: column; width: auto; margin: 0; padding: 6px; border-radius: 30px; align-self: center; }
+  .brand__name, .bar__title, .btn span { display: none; }
+  .brand__logo { width: 40px; height: 40px; }
+  .bar__actions { flex-direction: column; }
+  .btn { padding: 9px; }
+}
+</style>
+</head>
+<body>
+<div class="sky" aria-hidden="true">
+  <svg class="cloud c1" viewBox="0 0 200 110"><path fill="currentColor" d="M50 104a34 34 0 0 1-7-67.300A46 46 0 0 1 128 22a36 36 0 0 1 32 16 33 33 0 0 1-4 66H50Z"/></svg>
+  <svg class="cloud c2" viewBox="0 0 200 110"><path fill="currentColor" d="M50 104a34 34 0 0 1-7-67.300A46 46 0 0 1 128 22a36 36 0 0 1 32 16 33 33 0 0 1-4 66H50Z"/></svg>
+  <svg class="cloud c3" viewBox="0 0 200 110"><path fill="currentColor" d="M50 104a34 34 0 0 1-7-67.300A46 46 0 0 1 128 22a36 36 0 0 1 32 16 33 33 0 0 1-4 66H50Z"/></svg>
+</div>
+
+<header class="bar">
+  <a class="brand" id="home" href="/"><img class="brand__logo" src="/wp-content/uploads/2026/11/shouku-logo-square-150x150.jpg" alt="Shouku Games"><span class="brand__name">Shouku Games</span></a>
+  <h1 class="bar__title"><span id="title">{{TITLE_EN}}</span><small id="sub">Playing in your browser</small></h1>
+  <div class="bar__actions">
+    <a class="btn btn--white" id="back" href="/games/{{SLUG}}/"><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg><span id="back-t">Game page</span></a>
+    <button class="btn btn--blue" id="fs" type="button" hidden><svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg><span id="fs-t">Full screen</span></button>
+  </div>
+</header>
+
+<main class="stage">
+  <div class="frame" id="frame" data-fit="{{FIT}}">
+    <div class="wait" id="wait">Loading…</div>
+    <iframe id="game" src="game/" title="{{TITLE_EN}}" allow="autoplay; fullscreen; camera; microphone; gamepad; clipboard-write" allowfullscreen></iframe>
+  </div>
+</main>
+<p class="tip" id="tip">Turn your phone sideways for a bigger game.</p>
+
+<script>
+(function () {
+  var ja = document.documentElement.lang === 'ja';
+  var slug = '{{SLUG}}', title = ja ? {{TITLE_JA_JS}} : {{TITLE_EN_JS}};
+  var $ = function (id) { return document.getElementById(id); };
+  var t = ja ? {
+    page: title + 'をブラウザで遊ぶ · Shouku Games', sub: 'ブラウザで遊んでいます', back: 'ゲームページ',
+    fs: '全画面', fsOff: '全画面を終了', tip: 'スマホを横向きにすると大きく遊べます。', wait: '読み込み中…'
+  } : {
+    page: 'Play ' + title + ' online · Shouku Games', sub: 'Playing in your browser', back: 'Game page',
+    fs: 'Full screen', fsOff: 'Exit full screen', tip: 'Turn your phone sideways for a bigger game.', wait: 'Loading…'
+  };
+  document.title = t.page;
+  $('title').textContent = title; $('sub').textContent = t.sub; $('back-t').textContent = t.back;
+  $('fs-t').textContent = t.fs; $('tip').textContent = t.tip; $('wait').textContent = t.wait;
+  $('game').title = title;
+  $('back').setAttribute('aria-label', t.back); $('fs').setAttribute('aria-label', t.fs);
+  if (ja) { $('home').href = '/ja/'; $('back').href = '/ja/games/' + slug + '/'; }
+
+  var frame = $('frame'), game = $('game');
+  game.addEventListener('load', function () {
+    frame.classList.add('is-loaded');
+    try {
+      // The game's own full screen button fills the screen with the game window instead.
+      var w = game.contentWindow;
+      w.Element.prototype.requestFullscreen = w.Element.prototype.webkitRequestFullscreen = function () { return enterFs(); };
+      w.document.exitFullscreen = w.document.webkitExitFullscreen = function () { return exitFs(); };
+      w.focus();
+    } catch (e) {}
+  });
+
+  // Fixed-layout games (1280x720 web pages) run at their own size and are scaled to fit the window.
+  if (frame.dataset.fit === 'scale') {
+    frame.classList.add('is-scaled');
+    var rescale = function () {
+      var cw = frame.clientWidth, ch = frame.clientHeight, s = Math.min(cw / {{W}}, ch / {{H}});
+      game.style.transform = 'translate(' + (cw - {{W}} * s) / 2 + 'px,' + (ch - {{H}} * s) / 2 + 'px) scale(' + s + ')';
+    };
+    rescale();
+    if (window.ResizeObserver) new ResizeObserver(rescale).observe(frame); else window.addEventListener('resize', rescale);
+  }
+
+  // Full screen for the game window (not offered where the browser can't, e.g. iPhone).
+  var fs = $('fs');
+  var canFs = document.fullscreenEnabled || document.webkitFullscreenEnabled;
+  var current = function () { return document.fullscreenElement || document.webkitFullscreenElement; };
+  if (canFs) fs.hidden = false;
+  function enterFs() { var f = frame.requestFullscreen || frame.webkitRequestFullscreen; return f ? f.call(frame) : Promise.resolve(); }
+  function exitFs() { var f = document.exitFullscreen || document.webkitExitFullscreen; return current() && f ? f.call(document) : Promise.resolve(); }
+  fs.addEventListener('click', function () { if (current()) exitFs(); else enterFs(); });
+  var onFs = function () {
+    var on = !!current();
+    $('fs-t').textContent = on ? t.fsOff : t.fs; fs.setAttribute('aria-label', on ? t.fsOff : t.fs);
+    try { game.contentWindow.focus(); } catch (e) {}
+  };
+  document.addEventListener('fullscreenchange', onFs);
+  document.addEventListener('webkitfullscreenchange', onFs);
+})();
+</script>
+</body>
+</html>
